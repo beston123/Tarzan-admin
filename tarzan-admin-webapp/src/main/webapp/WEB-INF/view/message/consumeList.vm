@@ -1,0 +1,448 @@
+## 一级二级菜单
+#set($leftLevel1 = 'message')
+#set($leftLevel2 = 3)
+
+## 面包屑
+#parse("include/breadcrumbs.vm")
+#breadcrumbs(["#",""],["消息管理","消费结果"])
+
+#parse("include/page.vm")
+
+## 主面板
+<div class="row">
+    <div class="space-12"></div>
+
+    <div class="col-sm-12">
+        <form class="form-horizontal" action='${ac.contextPath}/message/queryConsume' id="pagingForm" >
+            <input type="hidden" id="pageNo" name="pageNo" value="$!{basePage.pageNo}">
+            <input type="hidden" id="pageSize" name="pageSize" value="$!{basePage.pageSize}">
+            <div class="form-group col-sm-3" >
+                <label for="tid" class="col-sm-4 control-label">事务Id:</label>
+                <div class="col-sm-8" style="margin-left:-10px;">
+                    <input type="text" class="form-control"  id="tid" name="tid" value="$!{query.tid}" placeholder="">
+                </div>
+            </div>
+            <div class="form-group col-sm-3">
+                <label for="messageKey" class="col-sm-4 control-label">消息Key:</label>
+                <div class="col-sm-8" style="margin-left:-10px;">
+                    <input type="text" class="form-control"  id="messageKey" name="messageKey" value="$!{query.messageKey}" placeholder="">
+                </div>
+            </div>
+            <div class="form-group col-sm-3">
+                <label for="topic" class="col-sm-3 control-label">Topic:</label>
+                <div class="col-sm-9" style="margin-left:-10px;">
+                    <input type="text" class="form-control"  id="topic" name="topic" value="$!{query.topic}" placeholder="">
+                </div>
+            </div>
+            <div class="form-group col-sm-3">
+                <label for="tags" class="col-sm-3 control-label">Tags:</label>
+                <div class="col-sm-9" style="margin-left:-10px;">
+                    <input type="text" class="form-control"  id="tags" name="tags" value="$!{query.tags}" placeholder="">
+                </div>
+            </div>
+
+            <div class="form-group col-sm-2" >
+                <label for="consumeStatus" class="col-sm-6 control-label">消费状态:</label>
+                <div class="col-sm-6" style="margin-left:-10px;">
+                    <select class="form-control" name="consumeStatus" id="consumeStatus">
+                        <option value="">全部</option>
+                        <option value='false' #if($!{query.consumeStatus} == false) selected #end>失败</option>
+                        <option value='true'  #if($!{query.consumeStatus} == true ) selected #end>成功</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group col-sm-6">
+                <label for="createTime" class="col-sm-3 control-label">创建时间:</label>
+                <div class="col-sm-4" style="margin-left:-10px;">
+                    <input type="date" class="form-control"  id="createTimeFrom" name="createTimeFrom"
+                           value="$!datetool.format('yyyy-MM-dd',$!{query.createTimeFrom})" placeholder="">
+                </div>
+                <div class="col-sm-4" style="margin-left:-10px;">
+                    <input type="date" class="form-control"  id="createTimeTo" name="createTimeTo"
+                           value="$!datetool.format('yyyy-MM-dd',$!{query.createTimeTo})" placeholder="">
+                </div>
+            </div>
+
+            <div class="form-group col-sm-4">
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="return query();">查询</button>
+                </div>
+                <div class="btn-group" style="margin-left: 5px">
+                    <button type="button" class="btn btn-primary" onclick="return sendMessageBatch();">批量重发</button>
+                </div>
+                <div class="btn-group" style="margin-left: 5px">
+                    <button type="button" class="btn btn-primary" onclick="return deleteBatch();">批量删除</button>
+                </div>
+            </div>
+        </form>
+    </div><!-- ./col -->
+</div><!-- ./row -->
+
+
+<div class="row">
+    <div class="col-xs-12">
+
+        <!--h3 class="header smaller lighter blue">jQuery dataTables</h3-->
+
+        <div class="clearfix">
+            <div class="pull-right tableTools-container"></div>
+        </div>
+        <div class="table-header">
+            消费结果 (仅显示第一次消费失败的消息)
+        </div>
+
+        <!-- div.dataTables_borderWrap -->
+        <div>
+            <table id="dynamic-table" class="table table-striped table-bordered table-hover">
+                <thead>
+                <tr>
+                    <th><input type="checkbox" class="checkboxParent" name='check' /></th>
+                    <th>事务Id</th>
+                    <th>消息Key</th>
+                    <th>消息Topic</th>
+                    <th>消息Tags</th>
+                    <th>消费者</th>
+                    <th>重消费次数</th>
+                    <th>消费结果</th>
+                    <th>创建时间</th>
+                    <th>更新时间</th>
+                    <th>操作</th>
+                </tr>
+                </thead>
+
+                <tbody id="tbody">
+                    #foreach($!{item} in $!{list})
+                    <tr>
+                        <td><input type='checkbox' class="checkbox" name="checkFlag" value='$!{item.id}' /></td>
+                        <td><a href="javascript:void(0)" class="messageItem" data-item='$!viewUtils.toJSON($!{item})' role="button" data-toggle="modal">$!{item.tid}</a></td>
+                        <td>$!{item.messageKey}</td>
+                        <td>$!{item.topic}</td>
+                        <td>$!{item.tags}</td>
+                        <td>$!{item.consumer}</td>
+                        <td>$!{item.reconsumeTimes}</td>
+                        <td>#if($!{item.consumeStatus})
+                                <span class="label label-sm label-success">成功</span>
+                            #else
+                                <span class="label label-sm label-danger">失败</span>
+                            #end
+                        </td>
+                        <td>$!datetool.format("yyyy-MM-dd HH:mm:ss", ${item.createTime})</td>
+                        <td>$!datetool.format("yyyy-MM-dd HH:mm:ss", ${item.modifyTime})</td>
+                        <td><div class="hidden-sm hidden-xs action-buttons">
+                                <a class="red" href="javascript:void(0)" title="删除" onclick="deleteConsume('$!{item.id}')">
+                                    <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                                </a>
+                                #if(!$!{item.consumeStatus} && $!{item.tid})
+                                <a class="red" href="javascript:void(0)" title="重发消息" onclick="sendMessage('$!{item.tid}', '$!{item.mqType}')">
+                                    <i class="ace-icon fa fa-refresh bigger-130"></i>
+                                </a>
+                                #end
+                            </div>
+                        </td>
+                    </tr>
+                    #end
+
+                </tbody>
+            </table>
+        </div>
+
+        <div>
+            #page($basePage, 'pagingForm', 'pageNo')
+        </div>
+
+        <!-- PAGE CONTENT ENDS -->
+    </div><!-- /.col -->
+</div><!-- /.row -->
+
+#parse("commons/message.vm")
+#parse("commons/checkBox.vm")
+
+<div id="detail-modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header no-padding">
+                <div class="table-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span class="white">&times;</span>
+                    </button>
+                    消息详情
+                </div>
+            </div>
+
+            <div class="modal-body no-padding">
+                <div class="profile-user-info profile-user-info-striped itemExtraShow" style="width: 100%">
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer no-margin-top" style="padding-top: 7px;padding-bottom: 7px">
+                <button id="alertCloseBtn" class="btn btn-sm btn-primary pull-right" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    确定
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+
+<script>
+    var itemShow = (function() {
+        var mapping = {
+            'tid': '事务Id',
+            'messageId': '消息Id',
+            'messageKey': '消息Key',
+            'consumerGroup': '消费者Group',
+            'topic': '消息Topic',
+            'tags': '消息Tags',
+            'consumer': '消费者',
+            'mqType': 'MQ类型',
+            'consumeStatus': '消费状态',
+            'reconsumeTimes': '重新消费次数',
+            'createTime': '创建时间',
+            'modifyTime': '修改时间'
+        };
+
+        var render = {
+            itemOne: function(key, value) {
+                return '<div class="profile-info-name">' + key + '</div>' +
+                        '<div class="profile-info-value">' +
+                        '<span class="editable editable-click" >' + value + '</span>' +
+                        '</div>';
+            }
+        };
+
+        var handleTime = function(dateStamp) {
+            var date = new Date(dateStamp);
+            return date.getFullYear() +
+                    '-' + (date.getMonth() + 1) +
+                    '-' + date.getDate() +
+                    ' ' + date.getHours() +
+                    ':' + date.getMinutes() +
+                    ':' + date.getSeconds();
+        };
+
+        var handleConsumeStatus = function(status) {
+            var map = {
+                'false': '失败',
+                'true': '成功'
+            };
+            return map[status + ''];
+        };
+
+        var handleMqType = function(value) {
+            var map = {
+                '0': 'RocketMQ',
+                '1': 'Kafaka'
+            };
+            return map[value + ''];
+        };
+
+        var handleData = function(key, value) {
+            var newValue = '';
+            switch (key) {
+                case 'createTime':
+                case 'modifyTime':
+                    newValue = handleTime(value);
+                    break;
+                case 'mqType':
+                    newValue = handleMqType(value);
+                    break;
+                case 'consumeStatus':
+                    newValue = handleConsumeStatus(value);
+                    break;
+                default:
+                    newValue = value;
+                    break;
+            }
+            return newValue;
+        };
+
+        var parseData = function(data) {
+            var num = 1;
+            var str = '';
+
+            for (var key in mapping) {
+                var keyName = mapping[key];
+                if (data[key]) {
+                    str += '<div class="profile-info-row">';
+                    str += render.itemOne(keyName, handleData(key, data[key]));
+                    str += '</div>';
+                    num++;
+                }
+            }
+
+            $('.itemExtraShow').html(str);
+        };
+
+        var changeByData = function (ele){
+            var item = ele.data('item');
+            parseData(item);
+            $('#detail-modal').modal('show');
+        }
+
+        var op = function() {
+            $('body').on('click', '.messageItem', function(e) {
+                changeByData($(this));
+            });
+        };
+        var init = function() {
+            op();
+        };
+        return {
+            init: init
+        }
+    })();
+
+    itemShow.init();
+
+</script>
+<script>
+
+    function query(){
+        if(checkFormat()){
+            $('#pagingForm').submit();
+        }
+    }
+
+    //格式检查
+    function checkFormat() {
+
+        return true;
+    }
+
+    //删除消费结果
+    function deleteConsume(id) {
+        showConfirmPopUp("确认","确定要删除该消费结果吗？", function confirmCallback(formData){
+            $.ajax({
+                cache: true,
+                type: "DELETE",
+                url: "${ac.contextPath}/message/consume/"+id,
+                data: null,
+                async: false,
+                error: function (request) {
+                    showErrorPopUp("操作超时！");
+                },
+                success: function (data) {
+                    var result = data;
+                    showPopUp(result.status, result.message);
+                    if (result.status == 1) {
+                        setTimeout("location.reload()", 1500);
+                    }
+                }
+            });
+        }, id);
+    }
+
+    //发送消息
+    function sendMessage(tid, mqType) {
+        $.ajax({
+            cache: true,
+            type: "POST",
+            url: "${ac.contextPath}/message/send/"+ tid +"/"+ mqType,
+            data: null,
+            async: false,
+            error: function (request) {
+                showErrorPopUp("操作超时！");
+            },
+            success: function (data) {
+                var result = data;
+                showPopUp(result.status, result.message);
+            }
+        });
+    }
+
+    //批量发送消息
+    function sendMessageBatch() {
+        var checkFlags = $("#tbody :checkbox");
+        var count = 0;
+        var ids = '';
+        var first = true;
+        var checked;
+        for (var i = 0; i < checkFlags.length; i++) {
+            checked = checkFlags[i];
+            if (checked.checked && checked.value) {
+                count++;
+                if (first) {
+                    first = false;
+                } else {
+                    ids += ",";
+                }
+                ids += checked.value;
+            }
+        }
+        if (count == 0) {
+            showAlertPopUp('请选择一条记录！');
+            return;
+        }
+
+        var formData = {
+            "ids": ids
+        }
+
+        $.ajax({
+            cache: true,
+            type: "POST",
+            url: "${ac.contextPath}/message/sendBatch",
+            data: formData,
+            async: false,
+            error: function (request) {
+                showErrorPopUp("操作超时！");
+            },
+            success: function (data) {
+                var result = data;
+                showPopUp(result.status, result.message);
+            }
+        });
+    }
+
+    //批量删除
+    function deleteBatch() {
+        var checkFlags = $("#tbody :checkbox");
+        var count = 0;
+        var ids = '';
+        var first = true;
+        var checked;
+        for (var i = 0; i < checkFlags.length; i++) {
+            checked = checkFlags[i];
+            if (checked.checked && checked.value) {
+                count++;
+                if (first) {
+                    first = false;
+                } else {
+                    ids += ",";
+                }
+                ids += checked.value;
+            }
+        }
+        if (count == 0) {
+            showAlertPopUp('请选择一条记录！');
+            return;
+        }
+
+        var formData = {
+            "ids": ids
+        }
+        showConfirmPopUp("确认","确定要删除这些消费结果吗？", function confirmCallback(formData){
+            $.ajax({
+                cache: true,
+                type: "POST",
+                url: "${ac.contextPath}/message/deleteBatch",
+                data: formData,
+                async: false,
+                error: function (request) {
+                    showErrorPopUp("操作超时！");
+                },
+                success: function (data) {
+                    var result = data;
+                    showPopUp(result.status, result.message);
+                    if (result.status == 1) {
+                        setTimeout("location.reload()", 1500);
+                    }
+                }
+            });
+        }, formData);
+    }
+
+</script>

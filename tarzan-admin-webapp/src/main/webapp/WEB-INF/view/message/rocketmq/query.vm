@@ -1,0 +1,143 @@
+## 一级二级菜单
+#set($leftLevel1 = 'message')
+#set($leftLevel2 = 10)
+
+## 面包屑
+#parse("include/breadcrumbs.vm")
+#breadcrumbs(["#",""],["消息管理","RocketMQ"])
+
+## 主面板
+<div class="row">
+    <div class="space-12"></div>
+
+    <div class="col-sm-12">
+        <form class="form-horizontal" action='${ac.contextPath}/message/rocketmq/query' id="pagingForm" >
+            <div class="form-group">
+                <label for="tid" class="col-sm-1 control-label">事务Id:</label>
+                <div class="col-sm-2" style="margin-left:-10px;">
+                    <input type="text" class="form-control"  id="tid" name="tid" value="$!{tid}" placeholder="">
+                </div>
+
+                <label for="key" class="col-sm-1 control-label">消息Key:</label>
+                <div class="col-sm-2" style="margin-left:-10px;">
+                    <input type="text" class="form-control"  id="key" name="key" value="$!{key}" placeholder="">
+                </div>
+                <div class="btn-group" style="margin-left: 5px">
+                    <button type="button" class="btn btn-primary" onclick="return query();">查询</button>
+                </div>
+            </div>
+        </form>
+    </div><!-- ./col -->
+</div><!-- ./row -->
+
+
+<div class="row">
+    <div class="col-xs-12">
+
+        <!--h3 class="header smaller lighter blue">jQuery dataTables</h3-->
+
+        <div class="clearfix">
+            <div class="pull-right tableTools-container"></div>
+        </div>
+        <div class="table-header">
+            RocketMQ - 事务消息
+        </div>
+
+        <!-- div.dataTables_borderWrap -->
+        <div>
+            <div id="dynamic-table_wrapper" class="dataTables_wrapper form-inline no-footer">
+
+            <!--table id="dynamic-table" class="table table-striped table-bordered table-hover"-->
+            <table id="dynamic-table" class="table table-striped table-bordered table-hover dataTable no-footer" role="grid" aria-describedby="dynamic-table_info">
+                <thead>
+                    <tr role="row">
+                        <th class="center">
+                            <label class="pos-rel">
+                                <span class="lbl">序号</span>
+                            </label>
+                        </th>
+                        <th>事务Id</th>
+                        <th>消息Key</th>
+##                        <th>生产者Group</th>
+                        <th>消息Topic</th>
+                        <th>消息Tags</th>
+                        <th>事务状态</th>
+                        <th>发送状态</th>
+##                        <th class="center">消息Id</th>
+                        <th>消息时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    #foreach($!{item} in $!{list})
+                    <tr role="row" class="odd">
+                        <td class="center">
+                            $foreach.count
+                        </td>
+                        <td><a href="javascript:void(0)" class="messageItem" data-item='$!{item}' role="button" data-toggle="modal">$!{item.id}</a></td>
+                        <td>$!{item.messageKey}</td>
+##                        <td>$!{item.producerGroup}</td>
+                        <td>$!{item.topic}</td>
+                        <td>$!{item.tags}</td>
+                        <td class="center">
+                            #if($!{item.transactionState} == 0)
+                                <span class="label label-sm label-info">Prepare</span>
+                            #elseif($!{item.transactionState} == 1)
+                                <span class="label label-sm label-success">Commit</span>
+                            #elseif($!{item.transactionState} == 2)
+                                <span class="label label-sm label-danger">Rollback</span>
+                            #end
+                        </td>
+
+                        <td class="center">
+                            #if($!{item.sendStatus} == 0)
+                                <span class="label label-sm label-info">初始</span>
+                            #elseif($!{item.sendStatus} == 1)
+                                <span class="label label-sm label-success">成功</span>
+                            #elseif($!{item.sendStatus} == -1)
+                                <span class="label label-sm label-danger">失败</span>
+                            #end
+                        </td>
+##                        <td>$!{item.messageId}</td>
+                        <td>$!datetool.format("yyyy-MM-dd HH:mm:ss", ${item.createTime})</td>
+
+                        <td></td>
+                    </tr>
+                    #end
+
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+        <!-- PAGE CONTENT ENDS -->
+    </div><!-- /.col -->
+</div><!-- /.row -->
+
+#parse("commons/message.vm")
+#parse("message/rocketmq/detailModal.vm")
+
+<script>
+
+    function query(){
+        if(checkFormat()){
+            $('#pagingForm').submit();
+        }
+    }
+
+    //格式检查
+    function checkFormat() {
+        if ( $('#tid').val() == "" && $('#key').val() == "" ) {
+            showAlertPopUp('至少输入一个条件');
+            return false;
+        }
+        var reg = /^\d+$/;
+        if ( $('#tid').val() != '' && !reg.test($('#tid').val()) ) {
+            showAlertPopUp('tid必须为数字');
+            return false;
+        }
+        return true;
+    }
+
+</script>

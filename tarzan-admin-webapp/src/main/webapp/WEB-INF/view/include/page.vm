@@ -1,0 +1,150 @@
+#macro(page $query $formId $pageNoId)
+<div class="row">
+    <div class="col-xs-6">
+        <div class="dataTables_info" id="dynamic-table_info" role="status" aria-live="polite">当前第$!{basePage.pageNo}/$!{basePage.pageCount}页，共$!{basePage.totalCount}条纪录</div>
+    </div>
+    <div class="col-xs-6">
+        <div class="dataTables_paginate paging_simple_numbers" id="dynamic-table_paginate">
+            <ul class="pagination tfam-pagination" data-nowpage="$!{query.pageNo}"
+                data-totalnum="$!{query.pageCount}" data-formid="${formId}" data-pagenoid="${pageNoId}">
+                #if(${query.pageNo} > 1)
+                    <li class="paginate_button previous" aria-controls="dynamic-table" tabindex="0" id="dynamic-table_previous">
+                        <a class="tfam-previous-page" href="javascript:void(0)">&laquo;</a>
+                    </li>
+                #else
+                    <li class="paginate_button previous disable" aria-controls="dynamic-table" tabindex="0" id="dynamic-table_previous">
+                        <a href="javascript:void(0)">&laquo;</a>
+                    </li>
+                #end
+
+                #if(${query.pageCount} > 1)
+                    #set($diff = ${query.pageCount} - ${query.pageNo})
+                    #if($diff < 4)
+                        #set($right = $diff)
+                        #set($left = 9 - $diff)
+                    #else
+                        #set($right = 4)
+                        #set($left = 5)
+                    #end
+                    #foreach($curPageNo in [1 .. ${query.pageCount}])
+                        #if($curPageNo == ${query.pageNo})
+                            <li class="paginate_button active" aria-controls="dynamic-table" tabindex="0">
+                                <a href="javascript:void(0);" >$curPageNo</a>
+                            </li>
+                        #else
+                            #if(${query.pageNo} >= 6)
+                                #if($curPageNo >= (${query.pageNo} - $left) && $curPageNo <= (${query.pageNo} + $right))
+                                    <li class="paginate_button" aria-controls="dynamic-table" tabindex="0">
+                                        <a href="javascript:void(0);" class="tfam-pagenum">$curPageNo</a>
+                                    </li>
+                                #end
+                            #else
+                                #if($curPageNo <= 10)
+                                    <li class="paginate_button" aria-controls="dynamic-table" tabindex="0">
+                                        <a href="javascript:void(0);" class="tfam-pagenum">$curPageNo</a>
+                                    </li>
+                                #end
+                            #end
+                        #end
+                    #end
+                #end
+
+                #if(${query.pageNo} < ${query.pageCount})
+                    <li class="paginate_button next" aria-controls="dynamic-table" tabindex="0" id="dynamic-table_next">
+                        <a class="tfam-next-page" href="javascript:void(0);">&raquo;</a>
+                    </li>
+                #else
+                    <li class="paginate_button next disabled" aria-controls="dynamic-table" tabindex="0" id="dynamic-table_next">
+                        <a href="javascript:void(0);">&raquo;</a>
+                    </li>
+                #end
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var elePage = $(".tfam-pagination");
+    var nowThisPageNum = elePage.data('nowpage');
+    var nowThisPageTotal = elePage.data('totalnum');
+    var elePageForm = $("#" + elePage.data('formid'));
+    var elePageNo = $("#" + elePage.data('pagenoid'));
+    var elePageSize = $("#pageSize");
+
+    // 前一页
+    $(".tfam-previous-page").click(function(){
+        var newPageNum = parseInt(nowThisPageNum)-1;
+        goTo(newPageNum);
+    });
+
+    // 后一页
+    $(".tfam-next-page").click(function() {
+        var newPageNum = parseInt(nowThisPageNum)+1;
+        goTo(newPageNum);
+    });
+
+
+    $(".tfam-pagenum").click(function(){
+        var pageNum = $.trim($(this).text());
+        if(checkNum(pageNum)) {
+            var newPageNum = parseInt(pageNum);
+            goTo(newPageNum);
+        }
+    });
+
+    $("#goToBtn").click(function() {
+        var pageNum = $.trim($("#goNumVal").val());
+        if(checkNum(pageNum, nowThisPageTotal)) {
+            var newPageNum = parseInt(pageNum);
+            goTo(newPageNum);
+        }
+    });
+
+    $("#setSizeBtn").click(function() {
+        var pageSize = $.trim($("#goSizeVal").val());
+        if(checkNum(pageSize, -1)) {
+            var newPageSize = parseInt(pageSize);
+            setSize(newPageSize);
+        }
+    });
+
+    function checkNum(pageNum, topNum) {
+        if(isNaN(pageNum) || pageNum == "" || pageNum == null) {
+            alert("请输入数字");
+            return false;
+        } else {
+            var newPageNum = parseInt(pageNum);
+            if(newPageNum<=0) {
+                alert("请输入大于0的数字");
+                return false;
+            } else {
+                if(topNum!=-1) {
+                    if(newPageNum > topNum) {
+                        alert("请输入小于等于"+ topNum + "的数字");
+                        return false;
+                    } else {
+                        return true;
+                    }
+                } else {
+                    return true;
+                }
+            }
+        }
+    }
+
+    function setSize(pageSize) {
+        elePageSize.attr({
+            'value': pageSize
+        });
+        elePageForm.submit();
+    }
+
+    function goTo(pageNum) {
+        elePageNo.attr({
+            'value': pageNum
+        });
+        elePageForm.submit();
+    }
+
+</script>
+#end

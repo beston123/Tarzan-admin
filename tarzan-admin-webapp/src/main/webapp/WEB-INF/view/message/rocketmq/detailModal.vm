@@ -1,0 +1,141 @@
+<div id="detail-modal" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header no-padding">
+                <div class="table-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+                        <span class="white">&times;</span>
+                    </button>
+                    消息详情
+                </div>
+            </div>
+
+            <div class="modal-body no-padding">
+                <div class="profile-user-info profile-user-info-striped itemExtraShow" style="width: 100%">
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer no-margin-top" style="padding-top: 7px;padding-bottom: 7px">
+                <button id="alertCloseBtn" class="btn btn-sm btn-primary pull-right" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    确定
+                </button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal-dialog -->
+</div>
+
+<script>
+    var itemShow = (function() {
+        var mapping = {
+            'id': '事务Id',
+            'messageKey': '消息Key',
+            'topic': '消息Topic',
+            'tags': '消息Tags',
+            'producerGroup': '生产者Group',
+            'transactionState': '事务状态',
+            'sendStatus': '发送状态',
+            'messageId': '消息Id',
+            'hasAggregated': '是否被汇总',
+            'createTime': '消息时间',
+            'modifyTime': '修改时间'
+        };
+
+        var render = {
+            itemOne: function(key, value) {
+                return '<div class="profile-info-name">' + key + '</div>' +
+                        '<div class="profile-info-value">' +
+                        '<span class="editable editable-click" >' + value + '</span>' +
+                        '</div>';
+            }
+        };
+
+        var handleTime = function(dateStamp) {
+            var date = new Date(dateStamp);
+            return date.getFullYear() +
+                    '-' + (date.getMonth() + 1) +
+                    '-' + date.getDate() +
+                    ' ' + date.getHours() +
+                    ':' + date.getMinutes() +
+                    ':' + date.getSeconds();
+        };
+
+        var handleSendStatus = function(status) {
+            var statusMap = {
+                '-1': '失败',
+                '0': '初始',
+                '1': '成功'
+            };
+            return statusMap[status + ''];
+        };
+
+        var handleTransactionState = function(state) {
+            var stateMap = {
+                '0': 'Prepare',
+                '1': 'Commit',
+                '2': 'Rollback'
+            }
+            return stateMap[state + ''];
+        }
+
+        var handleData = function(key, value) {
+            var newValue = '';
+            switch (key) {
+                case 'createTime':
+                case 'modifyTime':
+                    newValue = handleTime(value);
+                    break;
+                case 'sendStatus':
+                    newValue = handleSendStatus(value);
+                    break;
+                case 'transactionState':
+                    newValue = handleTransactionState(value);
+                    break;
+                default:
+                    newValue = value;
+                    break;
+            }
+            return newValue;
+        };
+
+        var parseData = function(data) {
+            var num = 1;
+            var str = '';
+
+            for (var key in mapping) {
+                var keyName = mapping[key];
+                if (data[key]) {
+                    str += '<div class="profile-info-row">';
+                    str += render.itemOne(keyName, handleData(key, data[key]));
+                    str += '</div>';
+                    num++;
+                }
+            }
+
+            $('.itemExtraShow').html(str);
+        };
+
+        var changeByData = function (ele){
+            var item = ele.data('item');
+            parseData(item);
+            $('#detail-modal').modal('show');
+        }
+
+        var op = function() {
+            $('body').on('click', '.messageItem', function(e) {
+                changeByData($(this));
+            });
+        };
+        var init = function() {
+            op();
+        };
+        return {
+            init: init
+        }
+    })();
+
+    itemShow.init();
+
+</script>

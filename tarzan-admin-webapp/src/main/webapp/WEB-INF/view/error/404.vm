@@ -1,0 +1,63 @@
+## 一级二级菜单
+#set($leftLevel1 = 'error')
+#set($leftLevel2 = 404)
+
+## 面包屑
+#parse("include/breadcrumbs.vm")
+#breadcrumbs(["#",""],["错误提示","404"])
+
+## 主面板
+
+<div class="row">
+    <div class="col-xs-12">
+
+        <div class="error-container">
+            <div class="well">
+                <h1 class="grey lighter smaller">
+											<span class="blue bigger-125">
+												<i class="ace-icon fa fa-sitemap"></i>
+												404
+											</span>
+                    Page Not Found
+                </h1>
+
+                <hr>
+                <h3 class="lighter smaller">页面找不到啦，请联系开发人员。</h3>
+
+                <hr>
+                <div class="space"></div>
+
+                <div class="center">
+                    <a href="javascript:history.back()" class="btn btn-grey">
+                        <i class="ace-icon fa fa-arrow-left"></i>
+                        返回
+                    </a>
+
+                    <a href="/index" class="btn btn-primary">
+                        <i class="ace-icon fa fa-home"></i>
+                        主页
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.col -->
+</div><!-- /.row -->
+
+#parse("commons/message.vm")
+
+<script>
+
+    function query(){
+        if(checkFormat()){
+            $('#pagingForm').submit();
+        }
+    }
+
+    //格式检查
+    function checkFormat() {
+
+        return true;
+    }
+
+</script>

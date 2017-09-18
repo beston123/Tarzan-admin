@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<toolbox>
+    <tool>
+        <key>viewUtils</key>
+        <scope>application</scope>
+        <class>com.tongbanjie.tarzan.admin.common.ViewUtils</class>
+    </tool>
+</toolbox>
