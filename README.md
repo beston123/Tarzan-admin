@@ -1,5 +1,5 @@
 # Tarzan-admin
-可靠事件系统[Tarzan](https://github.com/beston123/Tarzan)监控中心：提供事务消息，客户端，服务端的监控功能的Web端。
+[可靠事件系统Tarzan](https://github.com/beston123/Tarzan)监控中心：为事务消息，客户端和服务端提供监控功能的Web端。
 
 ![ClientList](https://github.com/beston123/Tarzan-admin/blob/master/screenshots/ClientList.png)
 
