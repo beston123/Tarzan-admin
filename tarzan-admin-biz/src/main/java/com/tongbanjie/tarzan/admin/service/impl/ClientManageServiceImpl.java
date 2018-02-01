@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -29,7 +31,9 @@ public class ClientManageServiceImpl implements ClientManageService {
     @Override
     public Result<List<ClientAddress>> getAllClients() {
         List<Address> list = adminDiscovery.getDiscovered(ZkConstants.CLIENTS_ROOT);
-        return Result.buildSucc(castToClientAddress(list));
+        List<ClientAddress> clientAddressList = castToClientAddress(list);
+        orderByAppName(clientAddressList);
+        return Result.buildSucc(clientAddressList);
     }
 
     private List<ClientAddress> castToClientAddress(List<Address> list){
@@ -43,6 +47,19 @@ public class ClientManageServiceImpl implements ClientManageService {
             }
         }
         return clientAddressList;
+    }
+
+    /**
+     * 按AppName排序
+     * @param clientAddressList
+     */
+    private void orderByAppName(List<ClientAddress> clientAddressList){
+        Collections.sort(clientAddressList, new Comparator<ClientAddress>() {
+            @Override
+            public int compare(ClientAddress t1, ClientAddress t2) {
+                return t1.getAppName().compareTo(t2.getAppName());
+            }
+        });
     }
 
 }

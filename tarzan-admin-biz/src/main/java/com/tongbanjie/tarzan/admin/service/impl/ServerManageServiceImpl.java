@@ -93,11 +93,7 @@ public class ServerManageServiceImpl implements ServerManageService{
     @Override
     public Result<Void> deleteServerId(int serverId){
         Validate.notNull(serverId, "server Id is null");
-        ServerAddress toDelete = adminDiscovery.getByServerId(serverId);
-        if(toDelete == null){
-            return Result.buildSucc(null);
-        }
-        Result<Void> canBeDelete = isDeletable(toDelete);
+        Result<Void> canBeDelete = isDeletable(serverId);
         if(!canBeDelete.isSuccess()){
             return canBeDelete;
         }
@@ -128,13 +124,13 @@ public class ServerManageServiceImpl implements ServerManageService{
         return result;
     }
 
-    private Result<Void> isDeletable(ServerAddress toDelete){
+    private Result<Void> isDeletable(int serverId){
         List<ServerAddress> serverList = this.getAllServers().getData();
         if(serverList == null){
             return Result.buildFail(FailResult.SYSTEM);
         }
         for(ServerAddress address : serverList){
-            if(toDelete.getAddress().equals(address.getAddress())){
+            if(serverId == address.getServerId()){
                 return Result.buildFail(FailResult.BUSINESS, "服务端Id使用中");
             }
         }

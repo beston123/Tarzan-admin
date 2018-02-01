@@ -23,8 +23,8 @@
                 </div>
             </div>
             <div class="form-group col-sm-3">
-                <label for="messageKey" class="col-sm-4 control-label">消息Key:</label>
-                <div class="col-sm-8" style="margin-left:-10px;">
+                <label for="messageKey" class="col-sm-5 control-label">消息Key:</label>
+                <div class="col-sm-7" style="margin-left:-10px;">
                     <input type="text" class="form-control"  id="messageKey" name="messageKey" value="$!{query.messageKey}" placeholder="">
                 </div>
             </div>
@@ -42,8 +42,8 @@
             </div>
 
             <div class="form-group col-sm-2" >
-                <label for="consumeStatus" class="col-sm-6 control-label">消费状态:</label>
-                <div class="col-sm-6" style="margin-left:-10px;">
+                <label for="consumeStatus" class="col-sm-5 control-label">状态:</label>
+                <div class="col-sm-7" style="margin-left:-10px;">
                     <select class="form-control" name="consumeStatus" id="consumeStatus">
                         <option value="">全部</option>
                         <option value='false' #if($!{query.consumeStatus} == false) selected #end>失败</option>
@@ -104,7 +104,7 @@
                     <th>消息Tags</th>
                     <th>消费者</th>
                     <th>重消费次数</th>
-                    <th>消费结果</th>
+                    <th>状态</th>
                     <th>创建时间</th>
                     <th>更新时间</th>
                     <th>操作</th>
